@@ -108,11 +108,12 @@ class Handler(BaseHTTPRequestHandler):
         rows = []
         for e in reversed(events):
             if not e["json"]:
-                rows.append(f"<tr><td colspan=6>JSON 아님 ({e['size']} bytes)</td></tr>")
+                rows.append(f"<tr><td colspan=7>JSON 아님 ({e['size']} bytes)</td></tr>")
                 continue
             d = e["data"]
             imgs = "".join(f'<img src="/received/{i}" height=80> ' for i in e["images"])
             direction = DIRECTION_LABELS.get(d.get("direction"), d.get("direction") or "-")
+            plate = d.get("license_plate") or ""
             conf = d.get("plate_confidence")
             try:
                 low = float(conf) <= LOW_CONFIDENCE
@@ -122,15 +123,15 @@ class Handler(BaseHTTPRequestHandler):
             rows.append(
                 f"<tr><td>{d.get('time')}</td><td>{direction}</td>"
                 f"<td>{d.get('vehicle_type')} {d.get('vehicle_color')}</td>"
-                f"<td{conf_style}>{conf}</td><td><b>{d.get('license_plate')}</b></td>"
-                f"<td>{imgs}</td></tr>"
+                f"<td{conf_style}>{conf}</td><td><b>{plate}</b></td>"
+                f"<td>{imgs}</td><td><b>{plate[-4:]}</b></td></tr>"
             )
         html = (
             "<html><head><meta charset=utf-8><meta http-equiv=refresh content=3>"
             "<title>LPR 수신 테스트</title></head><body style='font-family:sans-serif'>"
             f"<h2>LPR 수신 내역 ({len(events)}건)</h2>"
             "<table border=1 cellpadding=4 style='border-collapse:collapse'>"
-            "<tr><th>감지시각</th><th>방향</th><th>차량</th><th>신뢰도</th><th>번호판</th><th>이미지</th></tr>"
+            "<tr><th>감지시각</th><th>방향</th><th>차량</th><th>신뢰도</th><th>번호판</th><th>이미지</th><th>4자리</th></tr>"
             + "".join(rows) + "</table></body></html>"
         )
         self._reply(html.encode("utf-8"), "text/html; charset=utf-8")
