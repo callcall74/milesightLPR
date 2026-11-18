@@ -17,7 +17,7 @@ SAVE_DIR = os.path.join(BASE_DIR, "received")
 SNAPSHOT_KEYS = ("license_plate_snapshot", "vehicle_snapshot", "full_snapshot")
 SAVE_IMAGE_KEYS = ("license_plate_snapshot",)  # 용량 절약: 번호판 이미지만 파일로 저장
 DIRECTION_LABELS = {"Approach": "진입", "Away": "출차"}
-LOW_CONFIDENCE = 0.40  # 이 값 이하 신뢰도는 화면에 빨간색 표시
+LOW_CONFIDENCE = 0.45  # 이 값 이하 신뢰도는 화면에 빨간색 표시
 
 events = []  # 최근 수신 내역 (메모리)
 
