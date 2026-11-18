@@ -1,0 +1,5 @@
+# 카메라에서 수신한 실제 번호판 데이터/이미지 (개인정보)
+test_server/received/
+
+__pycache__/
+*.pyc
