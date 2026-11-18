@@ -17,6 +17,7 @@ SAVE_DIR = os.path.join(BASE_DIR, "received")
 SNAPSHOT_KEYS = ("license_plate_snapshot", "vehicle_snapshot", "full_snapshot")
 SAVE_IMAGE_KEYS = ("license_plate_snapshot",)  # 용량 절약: 번호판 이미지만 파일로 저장
 DIRECTION_LABELS = {"Approach": "진입", "Away": "출차"}
+LOW_CONFIDENCE = 0.40  # 이 값 이하 신뢰도는 화면에 빨간색 표시
 
 events = []  # 최근 수신 내역 (메모리)
 
@@ -112,10 +113,16 @@ class Handler(BaseHTTPRequestHandler):
             d = e["data"]
             imgs = "".join(f'<img src="/received/{i}" height=80> ' for i in e["images"])
             direction = DIRECTION_LABELS.get(d.get("direction"), d.get("direction") or "-")
+            conf = d.get("plate_confidence")
+            try:
+                low = float(conf) <= LOW_CONFIDENCE
+            except (TypeError, ValueError):
+                low = False
+            conf_style = " style='color:red;font-weight:bold'" if low else ""
             rows.append(
                 f"<tr><td>{d.get('time')}</td><td>{direction}</td>"
-                f"<td><b>{d.get('license_plate')}</b></td>"
-                f"<td>{d.get('plate_confidence')}</td><td>{d.get('vehicle_type')} {d.get('vehicle_color')}</td>"
+                f"<td>{d.get('vehicle_type')} {d.get('vehicle_color')}</td>"
+                f"<td{conf_style}>{conf}</td><td><b>{d.get('license_plate')}</b></td>"
                 f"<td>{imgs}</td></tr>"
             )
         html = (
@@ -123,7 +130,7 @@ class Handler(BaseHTTPRequestHandler):
             "<title>LPR 수신 테스트</title></head><body style='font-family:sans-serif'>"
             f"<h2>LPR 수신 내역 ({len(events)}건)</h2>"
             "<table border=1 cellpadding=4 style='border-collapse:collapse'>"
-            "<tr><th>감지시각</th><th>방향</th><th>번호판</th><th>신뢰도</th><th>차량</th><th>이미지</th></tr>"
+            "<tr><th>감지시각</th><th>방향</th><th>차량</th><th>신뢰도</th><th>번호판</th><th>이미지</th></tr>"
             + "".join(rows) + "</table></body></html>"
         )
         self._reply(html.encode("utf-8"), "text/html; charset=utf-8")
